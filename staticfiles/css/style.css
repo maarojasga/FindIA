@@ -1,0 +1,81 @@
+body, html {
+  height: 100%;
+  margin: 0;
+}
+
+/* styles.css */
+body {
+    font-family: 'TT Hoves', sans-serif;
+
+}
+
+button {
+    background-color: #06f;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 20px;
+
+
+}
+
+/* LOGIN */
+.container_text {
+    background-image: url('https://media.telefonicatech.com/telefonicatech/uploads/2022/12/header-quienes-somos-2000x1024.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: #FFFFFF;
+    min-height: 100vh;
+    min-width: 100vh;
+}
+
+.container_form {
+    display: flex;
+    color: #06f;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .container_form  h2{
+    padding: 20px;
+  }
+.logo {
+    position: absolute;
+  top: -40px;
+  left: 10px;
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  z-index: 10000;
+}
+
+input {
+    margin-bottom: 20px;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
+    height: 40px;
+    padding: 0 10px;
+}
+
+.login_button {
+    background-color: #06f;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0 30%;
+
+}
+
+button:hover {
+    background-color: #06f;
+}

@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/oink.png' %}">
+    {% block title %}<title>FindIA</title>{% endblock %}
+</head>
+<body>
+    <image class="logo" src="{% static 'img/oink.png' %}">
+    <div class="container-fluid">
+    <div class="row">
+    <div class="col-md-8 container_image">
+    <h1></h1>
+</div>
+    <div class="col-md-4 p-0">
+
+        <div class="container_form">
+
+            <image class="sesion" src="{% static 'img/oink2.png' %}">
+                <h2>Inicio de sesión</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <p>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </p>
+            <p>
+                {{ form.password }}
+                {{ form.password.errors }}
+            </p>
+            <button class="login_button" type="submit">Ingresar</button>
+    </form>
+    </div>
+</div>
+</div>
+</div>
+</body>
+</html>

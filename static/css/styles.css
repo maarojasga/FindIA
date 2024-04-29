@@ -1,0 +1,288 @@
+/* styles.css */
+body {
+    font-family: "League Spartan";
+
+}
+
+button {
+    background-color: #233DFF;
+    color: ##F4F6FC;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 20px;
+
+    
+}
+
+/* LOGIN */
+.container_image {
+    background-image: url('https://blogs.iadb.org/gestion-fiscal/wp-content/uploads/sites/6/2021/09/FMM_Blog_Finanzas_Locales_GettyImages-910823896.jpg');
+    background-size: cover;
+    background-repeat: no-repeat; 
+    background-position: center;
+    color: ##F4F6FC;
+    min-height: 100vh; 
+    min-width: 100vh; 
+}
+
+.container_text {
+    background-color: #050a30;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 100vh;
+    min-width: 100vh;
+}
+
+.container_form {
+    background-color: #050a30;
+    /* background-image: url(/static/img/pesos.png);
+    background-size: 170px 100px; */
+    background-repeat: repeat;
+    display: flex;
+    color: #f4f6fc;
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+    padding: 20px; 
+  }
+
+.sesion {
+    height: 200px;
+    width: 200px;
+}
+  .container_form  h2{
+    padding: 20px;
+  }
+
+.logo {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    z-index: 10000;
+}
+
+input {
+    margin-bottom: 20px;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
+    height: 40px;
+    padding: 0 10px;
+}
+
+.login_button {
+    background-color: #233DFF;
+    color: ##F4F6FC;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0 30%;
+    
+}
+
+button:hover {
+    background-color: #233DFF;
+}
+
+/* MOVEMENTS */
+
+.movements {
+    padding-top: 20px;
+    background-color:#F4F6FC;
+    text-align: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 97vh;
+    min-width: 100vh;
+}
+
+
+/* CHAT */
+.app-container {
+    width: 100%; /* Ancho del viewport */
+    background-color: #050A30;
+    height: 100%; /* Alto del viewport */
+    display: flex;
+    flex-direction: column; /* Organiza los hijos en una columna */
+}
+
+.app-header {
+    color: #F4F6FC;
+    text-align: center;
+    padding: 10px 0;
+    flex-shrink: 0; /* Evita que el encabezado se contraiga */
+}
+
+.chat-container {
+    flex-grow: 1; /* Hace que el chat-container crezca y ocupe el espacio restante */
+    padding: 0 40px 20px 42px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    background-color: #e8eaf6;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.chat-header h2 {
+    margin: 0;
+    color: #050A30;
+    font-size: 18px;
+}
+
+.chat-body {
+    background-color: #F4F6FC;
+    flex-grow: 1; /* Ocupa el espacio restante */
+    border-radius: 10px;
+    padding: 0 20px;
+    text-align: center;
+    overflow: auto; /* Agrega scroll si el contenido excede la altura */
+}
+
+.chat-body p {
+    margin: 0;
+    color: #050A30;
+}
+
+/* DROPDOWN */
+/* Estilo del botón */
+.dropbtn {
+    background-color: #050A30;
+    color: white;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 20px; /* Ajusta para coincidir con tu diseño */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 200px; /* Ajusta el ancho según necesites */
+}
+
+/* Contenedor del botón */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Contenido desplegable */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    width: 160px !important;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links dentro del contenido desplegable */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Cambia el color de los enlaces al pasar el cursor */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Muestra el contenido desplegable al pasar el cursor */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Flecha hacia abajo del botón */
+.arrow-down {
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+/* Asegúrate de que el botón ocupe todo el espacio disponible si es necesario */
+.dropdown, .dropbtn, .dropdown-content {
+    width: 200px;
+}
+
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+/* Color of the slider when the switch is ON */
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+/* Box shadow on the slider */
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+/* Position of the slider when the switch is ON */
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+

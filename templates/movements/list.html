@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-4 p-0">
+      {% include 'movements/chat.html' %}
+    </div>
+    <div class="col-md-8 movements align-center">
+
+        <h1>Movimientos</h1>
+
+      <label class="switch">
+        <input type="checkbox" id="viewSwitch">
+        <span class="slider round"></span>
+      </label>
+
+      <div class="dropdown">
+          <button class="dropbtn">BALANCE
+            <span class="arrow-down">&#9660;</span>
+          </button>
+        <div class="dropdown-content">
+          <a href="#">Link 1</a>
+          <a href="#">Link 2</a>
+          <a href="#">Link 3</a>
+        </div>
+      </div>
+
+      <!-- Lista de Movimientos -->
+      <ul id="movementsList" style="display: none;">
+        {% for movement in movements %}
+          <li>
+            {{ movement.type }} - {{ movement.description }} - {{ movement.value }}
+            <a href="{% url 'edit_movement' movement.pk %}">Editar</a>
+            <a href="{% url 'delete_movement' movement.pk %}">Eliminar</a>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <!-- Contenedor para Highcharts -->
+      <div id="container" style="width:90%; height:400px;"></div>
+
+      <a href="{% url 'create_movement' %}">Crear nuevo movimiento</a>
+    </div>
+  </div>
+<script src="script.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    Highcharts.chart('container', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Ingresos vs Gastos'
+        },
+        xAxis: {
+            categories: ['Categorías']
+        },
+        yAxis: {
+            title: {
+                text: 'Monto'
+            }
+        },
+        series: [{
+            name: 'Ingresos',
+            data: [{{ total_ingresos }}],
+            color: 'green'
+        }, {
+            name: 'Gastos',
+            data: [{{ total_gastos }}],
+            color: 'red'
+        }]
+    });
+
+    // Escuchar cambios en el switch y alternar vistas
+    document.getElementById('viewSwitch').addEventListener('change', function() {
+        var chartDiv = document.getElementById('container');
+        var movementsList = document.getElementById('movementsList');
+        if (this.checked) {
+            chartDiv.style.display = 'none';
+            movementsList.style.display = 'block';
+        } else {
+            chartDiv.style.display = 'block';
+            movementsList.style.display = 'none';
+        }
+    });
+});
+</script>
+
+{% endblock %}
