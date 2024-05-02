@@ -1,51 +1,67 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <div class="row">
+<div class="row">
     <div class="col-md-4 p-0">
-      {% include 'movements/chat.html' %}
+        {% include 'movements/chat.html' %}
     </div>
     <div class="col-md-8 movements align-center">
-
-        <h1>Movimientos</h1>
-
-      <label class="switch">
-        <input type="checkbox" id="viewSwitch">
-        <span class="slider round"></span>
-      </label>
-
-      <div class="dropdown">
-          <button class="dropbtn">BALANCE
-            <span class="arrow-down">&#9660;</span>
-          </button>
-        <div class="dropdown-content">
-          <a href="#">Link 1</a>
-          <a href="#">Link 2</a>
-          <a href="#">Link 3</a>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="dropdown">
+                    <button class="dropbtn">BALANCE
+                        <span class="arrow-down">&#9660;</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="#" onclick="showMovements(); return false;">Balance</a>
+                        <a href="#" onclick="showCreditForm(); return false;">Créditos</a>
+                        <a href="#">Link 3</a>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Lista de Movimientos -->
-      <ul id="movementsList" style="display: none;">
-        {% for movement in movements %}
-          <li>
-            {{ movement.type }} - {{ movement.description }} - {{ movement.value }}
-            <a href="{% url 'edit_movement' movement.pk %}">Editar</a>
-            <a href="{% url 'delete_movement' movement.pk %}">Eliminar</a>
-          </li>
-        {% endfor %}
-      </ul>
+        <div id="movements" style="display: none;">
+            <div class="switch-container text-before">
+                <label class="switch">
+                    <input type="checkbox" id="viewSwitch">
+                    <span class="slider round"></span>
+                </label>
+                <span>View movement breakdown: </span>
+            </div>
+            <ul id="movementsList" style="display: none;">
+                {% for movement in movements %}
+                <li>
+                    {{ movement.type }} - {{ movement.description }} - {{ movement.value }}
+                    <a href="{% url 'edit_movement' movement.pk %}">Editar</a>
+                    <a href="{% url 'delete_movement' movement.pk %}">Eliminar</a>
+                </li>
+                {% endfor %}
+            </ul>
+            <!-- Contenedor para Highcharts -->
+            <div id="container_graph"></div>
+            <a href="{% url 'create_movement' %}">Crear nuevo movimiento</a>
+        </div>
 
-      <!-- Contenedor para Highcharts -->
-      <div id="container" style="width:90%; height:400px;"></div>
-
-      <a href="{% url 'create_movement' %}">Crear nuevo movimiento</a>
+        <div id="creditForm" style="display:none;">
+            <h3>Calcular pago de crédito</h3>
+            <form id="creditCalculationForm">
+                <label for="principal">Monto del préstamo:</label>
+                <input type="number" id="principal" name="principal" required>
+                <label for="interestRate">Tasa de interés anual (%):</label>
+                <input type="number" step="0.01" id="interestRate" name="interestRate" required>
+                <label for="term">Plazo (meses):</label>
+                <input type="number" id="term" name="term" required>
+                <button type="button" onclick="calculateCredit()">Calcular</button>
+            </form>
+            <div id="creditResult"></div>
+        </div>
     </div>
-  </div>
+</div>
 <script src="script.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    Highcharts.chart('container', {
+    Highcharts.chart('container_graph', {
         chart: {
             type: 'column'
         },
@@ -71,9 +87,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }]
     });
 
-    // Escuchar cambios en el switch y alternar vistas
     document.getElementById('viewSwitch').addEventListener('change', function() {
-        var chartDiv = document.getElementById('container');
+        var chartDiv = document.getElementById('container_graph');
         var movementsList = document.getElementById('movementsList');
         if (this.checked) {
             chartDiv.style.display = 'none';
@@ -84,6 +99,36 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+function showCreditForm() {
+    document.getElementById('creditForm').style.display = 'block';
+    document.getElementById('movements').style.display = 'none';
+}
+
+function showMovements() {
+    document.getElementById('movements').style.display = 'block';
+    document.getElementById('creditForm').style.display = 'none';
+}
+
+function calculateCredit() {
+    const principal = document.getElementById('principal').value;
+    const interestRate = document.getElementById('interestRate').value;
+    const term = document.getElementById('term').value;
+
+    fetch(`{% url 'calculate_credit' %}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({principal, interestRate, term})
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('creditResult').innerHTML = `Pago mensual: ${data.monthlyPayment}`;
+    })
+    .catch(error => console.error('Error:', error));
+}
 </script>
 
 {% endblock %}

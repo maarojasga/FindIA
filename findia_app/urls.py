@@ -8,4 +8,5 @@ urlpatterns = [
     path('eliminar/<pk>/', views.delete_movement, name='delete_movement'),
     path('chat', views.chat, name="chat"),
     path('ask_question/', views.ask_question, name="ask_question"),
+    path('calculate_credit/', views.calculate_credit, name='calculate_credit'),
 ]

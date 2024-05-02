@@ -1,11 +1,18 @@
-from django.shortcuts import render, redirect
-from .models import Movement, ChatBot
-from .forms import MovementForm
-from django.db.models import Sum
-from django.shortcuts import render, reverse
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect, JsonResponse
+import json
+
 import google.generativeai as genai
+import pandas as pd
+from django.contrib.auth.decorators import login_required
+from django.core.serializers import serialize
+from django.db.models import Sum
+from django.http import HttpResponseRedirect
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.shortcuts import render, reverse
+from django.views.decorators.csrf import csrf_exempt
+
+from .forms import MovementForm
+from .models import Movement, ChatBot
 
 # Create your views here.
 # add here to your generated API key
@@ -16,21 +23,46 @@ genai.configure(api_key="AIzaSyDu-j3lqMXNaeZEiMSWTfRrssUDi7WQ-ow")
 def ask_question(request):
     if request.method == "POST":
         text = request.POST.get("text")
+        user = request.user
+
+        with open('findia_app/base_chat.txt', 'r') as file:
+            base = file.read().strip()
+        print("este es un text", base)
+        movements = Movement.objects.filter(user=user)
+        movements_json = serialize('json', movements)
+        movements_data = json.loads(movements_json)
+
+        type_mapping = {'I': 'Income', 'C': 'Cost'}
+        modified_movements = []
+
+        for item in movements_data:
+            fields = item['fields']
+            modified_movement = {
+                'type': type_mapping.get(fields['type'], 'Unknown'),
+                'value': fields['value'],
+                'description': fields['description'],
+                'date': fields['date']
+            }
+            modified_movements.append(modified_movement)
+
+        # Transformar la lista de movimientos en una cadena de texto JSON para concatenar al mensaje
+        movements_text = json.dumps(modified_movements)
+        text = base + movements_text + " Responde este mensaje " + text
+        print(text)  # Solo para depuración, puedes eliminar esta línea luego
+
         model = genai.GenerativeModel("gemini-pro")
         chat = model.start_chat()
         response = chat.send_message(text)
-        user = request.user
+
         ChatBot.objects.create(text_input=text, gemini_output=response.text, user=user)
-        # Extract necessary data from response
+
         response_data = {
-            "text": response.text,  # Assuming response.text contains the relevant response data
-            # Add other relevant data from response if needed
+            "text": response.text
         }
+
         return JsonResponse({"data": response_data})
     else:
-        return HttpResponseRedirect(
-            reverse("chat")
-        )  # Redirect to chat page for GET requests
+        return HttpResponseRedirect(reverse("chat"))
 
 
 @login_required
@@ -75,6 +107,7 @@ def create_movement(request):
         form = MovementForm()
     return render(request, 'movements/create.html', {'form': form})
 
+
 @login_required
 def edit_movement(request, pk):
     movement = Movement.objects.get(pk=pk)
@@ -87,8 +120,100 @@ def edit_movement(request, pk):
         form = MovementForm(instance=movement)
     return render(request, 'movements/edit.html', {'form': form})
 
+
 @login_required
 def delete_movement(request, pk):
     movement = Movement.objects.get(pk=pk)
     movement.delete()
     return redirect('list_movements')
+
+
+@csrf_exempt
+def calculate_credit(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        principal = float(data['principal'])
+        interestRate = float(data['interestRate']) / 100
+        term = int(data['term'])
+
+        # Calcula el pago mensual
+        monthly_rate = interestRate / 12
+        monthly_payment = (principal * monthly_rate) / (1 - (1 + monthly_rate) ** (-term))
+
+        return JsonResponse({'monthlyPayment': round(monthly_payment, 2)})
+
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+def calculate_monthly_payment(PV, annual_interest_rate, n):
+    """
+    Calculate the fixed monthly payment for a loan.
+    Parameters:
+    - PV: Present Value or principal of the loan
+    - annual_interest_rate: Annual interest rate in percentage
+    - n: Total number of payments (loan term in months)
+    Returns:
+    - The fixed monthly payment amount
+    """
+    # Convert annual interest rate percentage to a decimal and divide by 12 for monthly rate
+    monthly_interest_rate = (annual_interest_rate / 100)
+    # Calculate the discount factor
+    discount_factor = (1 + monthly_interest_rate) ** -n
+    # Calculate the payment using the formula
+    payment = PV * monthly_interest_rate / (1 - discount_factor)
+    return payment
+
+
+# Example usage:
+payment = calculate_monthly_payment(6000000, 2.2, 72)
+print(payment)
+
+
+def calculate_loan_payment_schedule(loan_amount, total_periods, monthly_interest_rate, monthly_payment):
+    """
+    Calculate the loan payment schedule for a fixed payment loan with variable interest and principal
+    components each month until the loan is paid off.
+
+    Parameters:
+    - loan_amount: The initial amount of the loan.
+    - total_periods: The total number of payment periods.
+    - monthly_interest_rate: The monthly interest rate as a decimal.
+    - monthly_payment: The fixed amount to be paid each month.
+
+    Returns:
+    - A DataFrame with the payment schedule.
+    """
+    # Initialize the dataframe
+    payment_schedule = pd.DataFrame({
+        'Cuota No': range(1, total_periods + 1),
+        'Valor cuota mensual': [monthly_payment] * total_periods,
+        'Parte de la cuota que se convierte en abono a capital': [0] * total_periods,
+        'Parte de la cuota que se convierte en abono a intereses': [0] * total_periods,
+        'Saldo del crédito (capital) después del pago': [loan_amount] * total_periods
+    })
+
+    # Populate the dataframe with the payment schedule
+    for i in range(total_periods):
+        # Calculate the interest for the current month
+        interest_payment = payment_schedule.at[
+                               i, 'Saldo del crédito (capital) después del pago'] * monthly_interest_rate
+        # Calculate the principal payment for the current month
+        principal_payment = monthly_payment - interest_payment
+        # Update the balance of the loan
+        loan_balance = payment_schedule.at[i, 'Saldo del crédito (capital) después del pago'] - principal_payment
+        # Update the dataframe with the current month's values
+        payment_schedule.at[i, 'Parte de la cuota que se convierte en abono a intereses'] = interest_payment
+        payment_schedule.at[i, 'Parte de la cuota que se convierte en abono a capital'] = principal_payment
+        if i + 1 < total_periods:
+            payment_schedule.at[i + 1, 'Saldo del crédito (capital) después del pago'] = loan_balance
+
+    # Ensure the last payment does not cause the balance to go negative
+    payment_schedule.at[total_periods - 1, 'Saldo del crédito (capital) después del pago'] = 0
+
+    return payment_schedule
+
+
+# Example of using the function
+df = calculate_loan_payment_schedule(6000000, 72, 0.022, payment)
+# print(df)
+pd.set_option('display.max_rows', None)  # Esto permite que todas las filas se muestren
+# df
