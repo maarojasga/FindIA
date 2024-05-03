@@ -51,7 +51,7 @@ def ask_question(request):
             modified_movements.append(modified_movement)
 
         movements_text = json.dumps(modified_movements)
-        text = base + movements_text + " Responde este mensaje " + text
+        text = base + movements_text + " Response this message in english " + text
         print(text)
 
         model = genai.GenerativeModel("gemini-pro")
