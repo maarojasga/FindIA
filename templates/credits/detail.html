@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Credit Details</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            Principal: {{ credit.principal }}
+            Interest Rate: {{ credit.interest_rate }}%
+            Term: {{ credit.term }} months
+        </div>
+        <input type="submit" value="Show Details">
+    </form>
+    {% if monthly_payment %}
+    <div>
+        <h3>Monthly Payment: {{ monthly_payment }}</h3>
+        <h4>Payment Schedule: {{ schedule }}</h4>
+    </div>
+    {% endif %}
+    <a href="{% url 'list_credits' %}">Back to Credit List</a>
+</div>
+{% endblock %}

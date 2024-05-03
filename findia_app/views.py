@@ -14,6 +14,14 @@ from django.views.decorators.csrf import csrf_exempt
 from .forms import MovementForm
 from .models import Movement, ChatBot
 
+from .forms import CreditForm
+from .models import Credit
+
+import json
+from django.views.decorators.http import require_http_methods
+
+
+
 # Create your views here.
 # add here to your generated API key
 genai.configure(api_key="AIzaSyDu-j3lqMXNaeZEiMSWTfRrssUDi7WQ-ow")
@@ -128,6 +136,58 @@ def delete_movement(request, pk):
     return redirect('list_movements')
 
 
+@login_required
+def create_credit(request):
+    if request.method == 'POST':
+        form = CreditForm(request.POST)
+        if form.is_valid():
+            credit = form.save(commit=False)
+            credit.user = request.user
+            credit.save()
+            return redirect('list_credits')  # Redirige a la vista que muestra todos los créditos
+    else:
+        form = CreditForm()
+    return render(request, 'credits/create.html', {'form': form})
+
+@login_required
+def list_credits(request):
+    credits = Credit.objects.filter(user=request.user)
+    return render(request, 'movements/list.html', {'credits': credits})
+
+
+@login_required
+def edit_credit(request, pk):
+    credit = Credit.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = CreditForm(request.POST, instance=credit)
+        if form.is_valid():
+            form.save()
+            return redirect('list_credits')  # Asegúrate de usar el nombre correcto de la URL
+    else:
+        form = CreditForm(instance=credit)
+    return render(request, 'credits/edit.html', {'form': form})
+
+@login_required
+def delete_credit(request, pk):
+    credit = Credit.objects.get(pk=pk)
+    credit.delete()
+    return redirect('list_credits')
+
+
+def credit_details(request, pk):
+    credit = Credit.objects.get(pk=pk)
+    monthly_payment = calculate_monthly_payment(credit.principal, credit.interest_rate, credit.term)
+    payment_schedule_json = calculate_loan_payment_schedule(credit.principal, credit.term,
+                                                            credit.interest_rate / 100 / 12, monthly_payment)
+
+    return JsonResponse({
+        'principal': credit.principal,
+        'interestRate': credit.interest_rate,
+        'term': credit.term,
+        'monthlyPayment': monthly_payment,
+        'paymentSchedule': payment_schedule_json
+    })
+
 @csrf_exempt
 def calculate_credit(request):
     if request.method == 'POST':
@@ -155,11 +215,12 @@ def calculate_monthly_payment(PV, annual_interest_rate, n):
     - The fixed monthly payment amount
     """
     # Convert annual interest rate percentage to a decimal and divide by 12 for monthly rate
-    monthly_interest_rate = (annual_interest_rate / 100)
+    monthly_interest_rate = (annual_interest_rate / 100)/12
     # Calculate the discount factor
     discount_factor = (1 + monthly_interest_rate) ** -n
     # Calculate the payment using the formula
     payment = PV * monthly_interest_rate / (1 - discount_factor)
+    payment = round(payment, 2)
     return payment
 
 
@@ -209,11 +270,13 @@ def calculate_loan_payment_schedule(loan_amount, total_periods, monthly_interest
     # Ensure the last payment does not cause the balance to go negative
     payment_schedule.at[total_periods - 1, 'Saldo del crédito (capital) después del pago'] = 0
 
-    return payment_schedule
+    payment_schedule_json = payment_schedule.to_json(orient="records")
+    return payment_schedule_json
 
 
 # Example of using the function
-df = calculate_loan_payment_schedule(6000000, 72, 0.022, payment)
+
+#df = calculate_loan_payment_schedule(6000000, 72, 0.022, payment)
 # print(df)
-pd.set_option('display.max_rows', None)  # Esto permite que todas las filas se muestren
+#pd.set_option('display.max_rows', None)  # Esto permite que todas las filas se muestren
 # df

@@ -9,4 +9,9 @@ urlpatterns = [
     path('chat', views.chat, name="chat"),
     path('ask_question/', views.ask_question, name="ask_question"),
     path('calculate_credit/', views.calculate_credit, name='calculate_credit'),
+    path('credits/create/', views.create_credit, name='create_credit'),
+    path('credits/', views.list_credits, name='list_credits'),
+    path('credits/edit/<int:pk>/', views.edit_credit, name='edit_credit'),
+    path('credits/delete/<int:pk>/', views.delete_credit, name='delete_credit'),
+    path('credits/details/<int:pk>/', views.credit_details, name='credit_details'),
 ]

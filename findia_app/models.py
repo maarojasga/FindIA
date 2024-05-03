@@ -30,3 +30,13 @@ class ChatBot(models.Model):
 
     def __str__(self):
         return self.text_input
+
+class Credit(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    principal = models.DecimalField(max_digits=10, decimal_places=2)
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2)
+    term = models.IntegerField()  # en meses
+
+    def __str__(self):
+        return f"{self.user.username} - {self.principal}"
+

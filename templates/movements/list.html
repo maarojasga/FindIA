@@ -13,52 +13,54 @@
                         <span class="arrow-down">&#9660;</span>
                     </button>
                     <div class="dropdown-content">
-                        <a href="#" onclick="showMovements(); return false;">Balance</a>
-                        <a href="#" onclick="showCreditForm(); return false;">Créditos</a>
+                        <a href="#" onclick="showSection('movementsSection'); return false;">Movements</a>
+                        <a href="#" onclick="showSection('creditsSection'); return false;">Credits</a>
                         <a href="#">Link 3</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="movements" style="display: none;">
-            <div class="switch-container text-before">
-                <label class="switch">
-                    <input type="checkbox" id="viewSwitch">
-                    <span class="slider round"></span>
-                </label>
-                <span>View movement breakdown: </span>
-            </div>
-            <ul id="movementsList" style="display: none;">
+        <!-- Movements List -->
+        <div id="movementsSection" style="display: none;">
+            <h3>Movements</h3>
+            <ul>
                 {% for movement in movements %}
                 <li>
                     {{ movement.type }} - {{ movement.description }} - {{ movement.value }}
-                    <a href="{% url 'edit_movement' movement.pk %}">Editar</a>
-                    <a href="{% url 'delete_movement' movement.pk %}">Eliminar</a>
+                    <a href="{% url 'edit_movement' movement.pk %}">Edit</a>
+                    <a href="{% url 'delete_movement' movement.pk %}" onclick="return confirm('Are you sure you want to delete this?');">Delete</a>
                 </li>
                 {% endfor %}
             </ul>
-            <!-- Contenedor para Highcharts -->
-            <div id="container_graph"></div>
-            <a href="{% url 'create_movement' %}">Crear nuevo movimiento</a>
+            <a href="{% url 'create_movement' %}">Create new movement</a>
         </div>
 
-        <div id="creditForm" style="display:none;">
-            <h3>Calcular pago de crédito</h3>
-            <form id="creditCalculationForm">
-                <label for="principal">Monto del préstamo:</label>
-                <input type="number" id="principal" name="principal" required>
-                <label for="interestRate">Tasa de interés anual (%):</label>
-                <input type="number" step="0.01" id="interestRate" name="interestRate" required>
-                <label for="term">Plazo (meses):</label>
-                <input type="number" id="term" name="term" required>
-                <button type="button" onclick="calculateCredit()">Calcular</button>
-            </form>
-            <div id="creditResult"></div>
+        <!-- Credits List -->
+        <div id="creditsSection" style="display: none;">
+            <h2>Credit List</h2>
+            <ul>
+                {% for credit in credits %}
+                <li>
+                    Principal: {{ credit.principal }},
+                    Interest Rate: {{ credit.interest_rate }}%,
+                    Term: {{ credit.term }} months
+                    <button onclick="loadCreditDetail({{ credit.pk }});">Show Details</button>
+                    <a href="{% url 'edit_credit' credit.pk %}">Edit</a>
+                    <a href="{% url 'delete_credit' credit.pk %}" onclick="return confirm('Are you sure you want to delete this credit?');">Delete</a>
+                </li>
+                {% endfor %}
+            </ul>
+            <a href="{% url 'create_credit' %}">Add new credit</a>
         </div>
+
+        <!-- Div for dynamically loading credit details -->
+        <div id="creditDetails" style="display:none;"></div>
+
+        <!-- Highcharts Container -->
+        <div id="container_graph" style="width:90%; height:400px; display: none;"></div>
     </div>
 </div>
-<script src="script.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     Highcharts.chart('container_graph', {
@@ -66,69 +68,101 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'column'
         },
         title: {
-            text: 'Ingresos vs Gastos'
+            text: 'Income vs Expenses'
         },
         xAxis: {
-            categories: ['Categorías']
+            categories: ['Categories']
         },
         yAxis: {
             title: {
-                text: 'Monto'
+                text: 'Amount'
             }
         },
         series: [{
-            name: 'Ingresos',
+            name: 'Income',
             data: [{{ total_ingresos }}],
             color: 'green'
         }, {
-            name: 'Gastos',
+            name: 'Expenses',
             data: [{{ total_gastos }}],
             color: 'red'
         }]
     });
-
-    document.getElementById('viewSwitch').addEventListener('change', function() {
-        var chartDiv = document.getElementById('container_graph');
-        var movementsList = document.getElementById('movementsList');
-        if (this.checked) {
-            chartDiv.style.display = 'none';
-            movementsList.style.display = 'block';
-        } else {
-            chartDiv.style.display = 'block';
-            movementsList.style.display = 'none';
-        }
-    });
 });
 
-function showCreditForm() {
-    document.getElementById('creditForm').style.display = 'block';
-    document.getElementById('movements').style.display = 'none';
+function showSection(sectionId) {
+    var sections = ['movementsSection', 'creditsSection', 'creditDetails'];
+    var chartDiv = document.getElementById('container_graph');
+    sections.forEach(function(id) {
+        document.getElementById(id).style.display = 'none';
+    });
+    document.getElementById(sectionId).style.display = 'block';
+
+    // Control visibility of the chart
+    if (sectionId === 'movementsSection') {
+        chartDiv.style.display = 'block';
+    } else {
+        chartDiv.style.display = 'none';
+    }
 }
 
-function showMovements() {
-    document.getElementById('movements').style.display = 'block';
-    document.getElementById('creditForm').style.display = 'none';
+function loadCreditDetail(creditId) {
+    fetch(`/movements/credits/details/${creditId}/`)
+        .then(response => response.json())
+        .then(data => {
+            const detailsDiv = document.getElementById('creditDetails');
+            detailsDiv.style.display = 'block';
+            detailsDiv.innerHTML = `
+                <h3>Credit Details</h3>
+                <p>Principal: ${data.principal}</p>
+                <p>Interest Rate: ${data.interestRate}%</p>
+                <p>Term: ${data.term} months</p>
+                <p>Monthly Payment: ${data.monthlyPayment}</p>
+                <button onclick="closeDetails();">Close Details</button>
+            `;
+            showSection('creditDetails'); // Ensure this section is visible
+        });
 }
 
-function calculateCredit() {
-    const principal = document.getElementById('principal').value;
-    const interestRate = document.getElementById('interestRate').value;
-    const term = document.getElementById('term').value;
-
-    fetch(`{% url 'calculate_credit' %}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({principal, interestRate, term})
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('creditResult').innerHTML = `Pago mensual: ${data.monthlyPayment}`;
-    })
-    .catch(error => console.error('Error:', error));
+function closeDetails() {
+    document.getElementById('creditDetails').style.display = 'none';
+    showSection('creditsSection'); // Show credits list again
 }
+
+function loadCreditDetail(creditId) {
+    fetch(`/movements/credits/details/${creditId}/`)
+        .then(response => response.json())
+        .then(data => {
+            const detailsDiv = document.getElementById('creditDetails');
+            detailsDiv.style.display = 'block';
+            detailsDiv.innerHTML = `
+                <h3>Credit Details</h3>
+                <p>Principal: ${data.principal}</p>
+                <p>Interest Rate: ${data.interestRate}%</p>
+                <p>Term: ${data.term} months</p>
+                <p>Monthly Payment: ${data.monthlyPayment}</p>
+                ${buildPaymentScheduleTable(JSON.parse(data.paymentSchedule))}
+                <button onclick="closeDetails();">Close Details</button>
+            `;
+            showSection('creditDetails'); // Ensure this section is visible
+        });
+}
+
+function buildPaymentScheduleTable(scheduleData) {
+    let table = '<table border="1"><tr><th>Installment No</th><th>Monthly Payment</th><th>Principal Part</th><th>Interest Part</th><th>Remaining Principal</th></tr>';
+    scheduleData.forEach(row => {
+        table += `<tr>
+                    <td>${row['Cuota No']}</td>
+                    <td>${row['Valor cuota mensual']}</td>
+                    <td>${row['Parte de la cuota que se convierte en abono a capital']}</td>
+                    <td>${row['Parte de la cuota que se convierte en abono a intereses']}</td>
+                    <td>${row['Saldo del crédito (capital) después del pago']}</td>
+                  </tr>`;
+    });
+    table += '</table>';
+    return table;
+}
+
 </script>
 
 {% endblock %}
