@@ -1,0 +1,12 @@
+runtime: python311
+
+entrypoint: gunicorn -b :$PORT findia.wsgi
+
+env_variables:
+  DJANGO_SETTINGS_MODULE: "findia.settings"
+
+handlers:
+- url: /static
+  static_dir: static/
+- url: /.*
+  script: auto

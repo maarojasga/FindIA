@@ -21,9 +21,6 @@ import json
 from django.views.decorators.http import require_http_methods
 
 
-
-# Create your views here.
-# add here to your generated API key
 genai.configure(api_key="AIzaSyDu-j3lqMXNaeZEiMSWTfRrssUDi7WQ-ow")
 
 
@@ -53,10 +50,9 @@ def ask_question(request):
             }
             modified_movements.append(modified_movement)
 
-        # Transformar la lista de movimientos en una cadena de texto JSON para concatenar al mensaje
         movements_text = json.dumps(modified_movements)
         text = base + movements_text + " Responde este mensaje " + text
-        print(text)  # Solo para depuración, puedes eliminar esta línea luego
+        print(text)
 
         model = genai.GenerativeModel("gemini-pro")
         chat = model.start_chat()
@@ -88,7 +84,6 @@ def list_movements(request):
     if movement_type:
         movements = movements.filter(type=movement_type)
 
-    # Asegúrate de que los valores 'ingreso' y 'gasto' están correctamente escritos como en tus modelos
     total_ingresos = Movement.objects.filter(user=request.user, type='I').aggregate(Sum('value'))['value__sum'] or 0
     print(total_ingresos)
     total_gastos = Movement.objects.filter(user=request.user, type='C').aggregate(Sum('value'))['value__sum'] or 0
@@ -144,7 +139,7 @@ def create_credit(request):
             credit = form.save(commit=False)
             credit.user = request.user
             credit.save()
-            return redirect('list_credits')  # Redirige a la vista que muestra todos los créditos
+            return redirect('list_credits')
     else:
         form = CreditForm()
     return render(request, 'credits/create.html', {'form': form})
@@ -162,7 +157,7 @@ def edit_credit(request, pk):
         form = CreditForm(request.POST, instance=credit)
         if form.is_valid():
             form.save()
-            return redirect('list_credits')  # Asegúrate de usar el nombre correcto de la URL
+            return redirect('list_credits')
     else:
         form = CreditForm(instance=credit)
     return render(request, 'credits/edit.html', {'form': form})
@@ -214,19 +209,13 @@ def calculate_monthly_payment(PV, annual_interest_rate, n):
     Returns:
     - The fixed monthly payment amount
     """
-    # Convert annual interest rate percentage to a decimal and divide by 12 for monthly rate
     monthly_interest_rate = (annual_interest_rate / 100)/12
-    # Calculate the discount factor
+
     discount_factor = (1 + monthly_interest_rate) ** -n
-    # Calculate the payment using the formula
+
     payment = PV * monthly_interest_rate / (1 - discount_factor)
     payment = round(payment, 2)
     return payment
-
-
-# Example usage:
-payment = calculate_monthly_payment(6000000, 2.2, 72)
-print(payment)
 
 
 def calculate_loan_payment_schedule(loan_amount, total_periods, monthly_interest_rate, monthly_payment):
@@ -243,7 +232,6 @@ def calculate_loan_payment_schedule(loan_amount, total_periods, monthly_interest
     Returns:
     - A DataFrame with the payment schedule.
     """
-    # Initialize the dataframe
     payment_schedule = pd.DataFrame({
         'Cuota No': range(1, total_periods + 1),
         'Valor cuota mensual': [monthly_payment] * total_periods,
@@ -252,31 +240,17 @@ def calculate_loan_payment_schedule(loan_amount, total_periods, monthly_interest
         'Saldo del crédito (capital) después del pago': [loan_amount] * total_periods
     })
 
-    # Populate the dataframe with the payment schedule
     for i in range(total_periods):
-        # Calculate the interest for the current month
         interest_payment = payment_schedule.at[
                                i, 'Saldo del crédito (capital) después del pago'] * monthly_interest_rate
-        # Calculate the principal payment for the current month
         principal_payment = monthly_payment - interest_payment
-        # Update the balance of the loan
         loan_balance = payment_schedule.at[i, 'Saldo del crédito (capital) después del pago'] - principal_payment
-        # Update the dataframe with the current month's values
         payment_schedule.at[i, 'Parte de la cuota que se convierte en abono a intereses'] = interest_payment
         payment_schedule.at[i, 'Parte de la cuota que se convierte en abono a capital'] = principal_payment
         if i + 1 < total_periods:
             payment_schedule.at[i + 1, 'Saldo del crédito (capital) después del pago'] = loan_balance
 
-    # Ensure the last payment does not cause the balance to go negative
     payment_schedule.at[total_periods - 1, 'Saldo del crédito (capital) después del pago'] = 0
 
     payment_schedule_json = payment_schedule.to_json(orient="records")
     return payment_schedule_json
-
-
-# Example of using the function
-
-#df = calculate_loan_payment_schedule(6000000, 72, 0.022, payment)
-# print(df)
-#pd.set_option('display.max_rows', None)  # Esto permite que todas las filas se muestren
-# df

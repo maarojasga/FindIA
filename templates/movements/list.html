@@ -15,13 +15,11 @@
                     <div class="dropdown-content">
                         <a href="#" onclick="showSection('movementsSection'); return false;">Movements</a>
                         <a href="#" onclick="showSection('creditsSection'); return false;">Credits</a>
-                        <a href="#">Link 3</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Movements List -->
         <div id="movementsSection" style="display: none;">
             <h3>Movements</h3>
             <ul>
@@ -36,7 +34,6 @@
             <a href="{% url 'create_movement' %}">Create new movement</a>
         </div>
 
-        <!-- Credits List -->
         <div id="creditsSection" style="display: none;">
             <h2>Credit List</h2>
             <ul>
@@ -54,10 +51,8 @@
             <a href="{% url 'create_credit' %}">Add new credit</a>
         </div>
 
-        <!-- Div for dynamically loading credit details -->
         <div id="creditDetails" style="display:none;"></div>
 
-        <!-- Highcharts Container -->
         <div id="container_graph" style="width:90%; height:400px; display: none;"></div>
     </div>
 </div>
@@ -81,11 +76,11 @@ document.addEventListener('DOMContentLoaded', function () {
         series: [{
             name: 'Income',
             data: [{{ total_ingresos }}],
-            color: 'green'
+            color: '#050A30'
         }, {
             name: 'Expenses',
             data: [{{ total_gastos }}],
-            color: 'red'
+            color: '#233DFF'
         }]
     });
 });
@@ -120,13 +115,13 @@ function loadCreditDetail(creditId) {
                 <p>Monthly Payment: ${data.monthlyPayment}</p>
                 <button onclick="closeDetails();">Close Details</button>
             `;
-            showSection('creditDetails'); // Ensure this section is visible
+            showSection('creditDetails');
         });
 }
 
 function closeDetails() {
     document.getElementById('creditDetails').style.display = 'none';
-    showSection('creditsSection'); // Show credits list again
+    showSection('creditsSection');
 }
 
 function loadCreditDetail(creditId) {
@@ -144,7 +139,7 @@ function loadCreditDetail(creditId) {
                 ${buildPaymentScheduleTable(JSON.parse(data.paymentSchedule))}
                 <button onclick="closeDetails();">Close Details</button>
             `;
-            showSection('creditDetails'); // Ensure this section is visible
+            showSection('creditDetails');
         });
 }
 
